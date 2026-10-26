@@ -6,7 +6,7 @@ SlowSloth is a local-first personal AI task-management assistant designed for bu
 
 Built for the **Arduino UNO Q**, SlowSloth is designed to use Google's open-weight Gemma model family, with **Gemma 3 1B** selected for local task interpretation. The project brings together task planning, calendar integration, reminders, and a physical LED-matrix experience.
 
-The motivation is personal. Between hackathons, research, courses, workshops, competitive exams, social volunteering, and time with family and friends, managing commitments can become a job of its own. Recording tasks, assigning priorities, tracking deadlines, and arranging schedules takes time away from the work itself.
+The motivation is personal. Between hackathons, research, courses, workshops, competitive exams, social volunteering and time with family and friends, managing commitments can become a job of its own. Recording tasks, assigning priorities, tracking deadlines, and arranging schedules takes time away from the work itself.
 
 SlowSloth aims to reduce that administrative effort.
 

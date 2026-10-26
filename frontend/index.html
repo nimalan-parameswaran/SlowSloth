@@ -3,233 +3,424 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SlowSloth — Edge AI Task Assistant</title>
+  <title>SlowSloth — Personal AI Assistant</title>
   <link rel="stylesheet" href="/static/css/styles.css">
   <link rel="icon" type="image/svg+xml" href="/static/assets/sloth.svg">
 </head>
 <body>
 
-  <!-- App Header -->
-  <header class="app-header">
-    <div class="header-container">
-      <div class="brand-section">
-        <img src="/static/assets/sloth.svg" alt="SlowSloth mascot" class="brand-logo" />
-        <div class="brand-titles">
-          <h1>SlowSloth</h1>
-          <p class="tagline">Think Less About Tasks. Let Your Sloth Handle the Sorting.</p>
-        </div>
-      </div>
-      <div class="header-status">
-        <div id="status-badge" class="status-badge mock" title="Click to view system & AI engine status">
-          <span class="status-indicator-dot"></span>
-          <span id="status-label">DEV MOCK ENGINE (Rule-Based)</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content Area -->
-  <main class="app-main">
+  <div class="app-shell">
     
-    <!-- Quick Capture Section -->
-    <section class="capture-card" aria-labelledby="capture-heading">
-      <div class="capture-header">
-        <h2 id="capture-heading">Capture Raw Thought</h2>
-        <p>Type your unstructured thoughts, reminders, or notes. SlowSloth will extract separate tasks, suggested priorities, and deadlines.</p>
+    <!-- Sidebar Navigation Rail -->
+    <aside class="sidebar" aria-label="Main Navigation">
+      <div class="sidebar-brand">
+        <img src="/static/assets/sloth.svg" alt="SlowSloth Logo" class="brand-logo-img" />
+        <div class="brand-text">
+          <h1>SlowSloth</h1>
+          <p>Personal Edge AI Assistant</p>
+        </div>
       </div>
-      <form id="capture-form" class="capture-form">
-        <textarea
-          id="thought-input"
-          class="thought-textarea"
-          placeholder="e.g. Need to finish README for my AI project, check battery model results, and email my mentor tomorrow. I should probably do results first."
-          rows="3"
-          required
-        ></textarea>
-        <div class="capture-actions">
-          <span id="char-counter" class="char-counter">0 / 4000</span>
-          <button type="submit" id="organize-btn" class="btn-primary">
-            <span>Organize Thought</span>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="overview">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>Overview</span>
+        </button>
+
+        <button class="nav-item" data-section="capture">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+          <span>Capture / Inbox</span>
+        </button>
+
+        <button class="nav-item" data-section="tasks">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <span>Tasks</span>
+        </button>
+
+        <button class="nav-item" data-section="calendar">
+          <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span>Calendar</span>
+        </button>
+
+        <button class="nav-item" data-section="reminders">
+          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span>Reminders</span>
+        </button>
+
+        <button class="nav-item" data-section="briefing">
+          <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <span>Daily Briefing</span>
+        </button>
+
+        <button class="nav-item" data-section="activity">
+          <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          <span>Agent Activity</span>
+        </button>
+
+        <button class="nav-item" data-section="settings">
+          <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div id="status-badge" class="engine-badge mock" title="AI Runtime Status">
+          <span class="engine-dot"></span>
+          <span id="status-label">DEV MOCK ENGINE</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Viewport Surface -->
+    <main class="main-viewport">
+      
+      <!-- Atmospheric Gradient Mesh Header Banner -->
+      <header class="mesh-header">
+        <div class="header-title-section">
+          <h2 id="page-title">Overview</h2>
+          <p id="page-subtitle">Your personal daily command center</p>
+        </div>
+        <div>
+          <button id="quick-capture-top-btn" class="btn-pill-primary">
+            <span>+ Capture Thought</span>
           </button>
         </div>
+      </header>
+
+      <div class="content-container">
+
+        <!-- SECTION 1: OVERVIEW -->
+        <section id="section-overview" class="app-section active">
+          <div class="overview-grid">
+            <div class="stat-metric-card">
+              <span class="stat-metric-label">Active Tasks</span>
+              <span id="stat-tasks-count" class="stat-metric-value num-tabular">0</span>
+              <span class="stat-metric-hint">In progress</span>
+            </div>
+            <div class="stat-metric-card">
+              <span class="stat-metric-label">Today's Schedule</span>
+              <span id="stat-events-count" class="stat-metric-value num-tabular">0</span>
+              <span class="stat-metric-hint">Events & meetings</span>
+            </div>
+            <div class="stat-metric-card">
+              <span class="stat-metric-label">Scheduled Reminders</span>
+              <span id="stat-reminders-count" class="stat-metric-value num-tabular">0</span>
+              <span class="stat-metric-hint">Pending notification</span>
+            </div>
+            <div class="stat-metric-card">
+              <span class="stat-metric-label">Overdue Items</span>
+              <span id="stat-overdue-count" class="stat-metric-value num-tabular" style="color: var(--ruby);">0</span>
+              <span class="stat-metric-hint">Requires attention</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Priority Tasks Due Today</h3>
+                <button class="btn-pill-secondary" onclick="document.querySelector('[data-section=tasks]').click()">View All</button>
+              </div>
+              <div id="overview-today-tasks" style="display: flex; flex-direction: column; gap: 8px;">
+                <p style="color: var(--ink-mute); font-size: 0.88rem;">No immediate tasks due today.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Upcoming Schedule</h3>
+                <button class="btn-pill-secondary" onclick="document.querySelector('[data-section=calendar]').click()">Open Calendar</button>
+              </div>
+              <div id="overview-upcoming-events" style="display: flex; flex-direction: column; gap: 8px;">
+                <p style="color: var(--ink-mute); font-size: 0.88rem;">No upcoming meetings today.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: CAPTURE / INBOX -->
+        <section id="section-capture" class="app-section">
+          <div class="capture-hero">
+            <h3 class="card-title" style="margin-bottom: 6px;">Thought Intake</h3>
+            <p class="card-desc" style="margin-bottom: 16px;">
+              Enter meetings, reminders, and tasks in a single thought. The Planner Agent will analyze your intent and propose structured actions.
+            </p>
+            <form id="plan-form">
+              <textarea
+                id="plan-thought-input"
+                class="capture-textarea"
+                placeholder="e.g. I have a project meeting tomorrow at 10 AM for 30 minutes. Remind me 15 minutes before, and prepare the presentation today."
+                rows="3"
+                required
+              ></textarea>
+              <div class="capture-bar">
+                <span id="char-counter" class="num-tabular" style="font-size: 0.82rem; color: var(--ink-mute);">0 / 4000</span>
+                <button type="submit" id="plan-btn" class="btn-pill-primary">
+                  <span>Understand & Plan</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Structured Review Screen (Shown after planning) -->
+          <div id="review-panel" style="display: none;">
+            <div class="card" style="border: 2px solid var(--primary-bg-subdued-hover);">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Proposed Action Bundle</h3>
+                  <p id="planner-notes" class="card-desc"></p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                  <button type="button" id="discard-bundle-btn" class="btn-pill-secondary">Discard</button>
+                  <button type="button" id="approve-bundle-btn" class="btn-pill-primary">Approve & Execute All</button>
+                </div>
+              </div>
+
+              <div id="ambiguities-alert" style="display: none; background: var(--amber-soft); border: 1px solid rgba(155, 104, 41, 0.2); padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.85rem; color: var(--amber); margin-bottom: 16px;">
+                <!-- Ambiguity notes -->
+              </div>
+
+              <div class="review-actions-container">
+                <!-- Proposed Events -->
+                <div id="review-events-group" class="action-group">
+                  <div class="action-group-header">
+                    <span style="font-weight: 600; font-size: 0.9rem;">📅 Proposed Meetings / Events</span>
+                    <span id="review-events-count" class="pill-badge category num-tabular">0</span>
+                  </div>
+                  <div id="review-events-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
+
+                <!-- Proposed Reminders -->
+                <div id="review-reminders-group" class="action-group">
+                  <div class="action-group-header">
+                    <span style="font-weight: 600; font-size: 0.9rem;">🔔 Proposed Reminders</span>
+                    <span id="review-reminders-count" class="pill-badge category num-tabular">0</span>
+                  </div>
+                  <div id="review-reminders-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
+
+                <!-- Proposed Tasks -->
+                <div id="review-tasks-group" class="action-group">
+                  <div class="action-group-header">
+                    <span style="font-weight: 600; font-size: 0.9rem;">☑️ Proposed Tasks</span>
+                    <span id="review-tasks-count" class="pill-badge category num-tabular">0</span>
+                  </div>
+                  <div id="review-tasks-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: TASKS BOARD -->
+        <section id="section-tasks" class="app-section">
+          <div class="tasks-toolbar">
+            <div class="view-tabs">
+              <button class="view-tab-btn active" data-view="all">All Tasks</button>
+              <button class="view-tab-btn" data-view="today">Today</button>
+              <button class="view-tab-btn" data-view="upcoming">Upcoming</button>
+              <button class="view-tab-btn" data-view="overdue">Overdue</button>
+              <button class="view-tab-btn" data-view="inbox">Inbox</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <select id="priority-filter" class="select-box" style="width: 140px;">
+                <option value="">All Priorities</option>
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+              </select>
+              <input type="search" id="task-search-input" class="input-text" placeholder="Search tasks..." style="width: 180px;" />
+            </div>
+          </div>
+
+          <div id="task-list" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Task cards rendered here -->
+          </div>
+        </section>
+
+        <!-- SECTION 4: CALENDAR AGENDA -->
+        <section id="section-calendar" class="app-section">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-desc">Local agenda schedule with optional Google Calendar sync</div>
+            <button id="create-event-btn" class="btn-pill-primary">+ New Event</button>
+          </div>
+
+          <div id="calendar-agenda-container" style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- Agenda cards rendered here -->
+          </div>
+        </section>
+
+        <!-- SECTION 5: REMINDERS -->
+        <section id="section-reminders" class="app-section">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="card-desc">Scheduled notifications and restart-recovered alerts</div>
+            <button id="process-due-reminders-btn" class="btn-pill-secondary">Check Due Reminders</button>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Scheduled Time</th>
+                  <th>Offset</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reminders-table-body">
+                <!-- Reminders rows rendered here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECTION 6: DAILY BRIEFING -->
+        <section id="section-briefing" class="app-section">
+          <div class="card" style="background: linear-gradient(135deg, #ffffff 0%, #f6f9fc 100%);">
+            <div class="card-header">
+              <div>
+                <h3 class="card-title">Grounded Executive Briefing</h3>
+                <span class="pill-badge category">Synthesized from SQLite State</span>
+              </div>
+              <button id="refresh-briefing-btn" class="btn-pill-secondary">↻ Refresh Briefing</button>
+            </div>
+            <p id="briefing-summary" style="font-size: 1rem; color: var(--ink); line-height: 1.7; margin-bottom: 20px;">
+              Generating daily briefing...
+            </p>
+            <div id="briefing-sections-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+              <!-- Briefing counts -->
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 7: AGENT ACTIVITY LOG -->
+        <section id="section-activity" class="app-section">
+          <div class="card-header">
+            <h3 class="card-title">Agent Activity Log</h3>
+            <span class="card-desc">Transparent audit of Planner, Task, Calendar, and Reminder agents</span>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Agent</th>
+                  <th>Action</th>
+                  <th>Summary</th>
+                  <th>Status</th>
+                  <th>Latency</th>
+                </tr>
+              </thead>
+              <tbody id="activity-table-body">
+                <!-- Activity logs rendered here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECTION 8: SETTINGS & INTEGRATIONS -->
+        <section id="section-settings" class="app-section">
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <!-- Google Calendar Integration -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3 class="card-title">Google Calendar Integration</h3>
+                  <p class="card-desc">Optionally sync events to Google Calendar using OAuth 2.0</p>
+                </div>
+                <span id="google-status-pill" class="pill-badge category">Checking...</span>
+              </div>
+
+              <div id="google-connected-box" style="display: none; background: var(--emerald-soft); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(5, 150, 105, 0.2); margin-bottom: 16px;">
+                <p style="font-size: 0.9rem; color: var(--emerald); font-weight: 500;">✓ Connected to Google Calendar</p>
+                <p id="google-connected-email" style="font-size: 0.82rem; color: var(--ink-secondary); margin-top: 4px;"></p>
+                <button type="button" id="google-disconnect-btn" class="btn-pill-danger" style="margin-top: 10px;">Disconnect Account</button>
+              </div>
+
+              <form id="google-config-form" style="display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                  <div>
+                    <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Client ID</label>
+                    <input type="text" id="google-client-id" class="input-text" placeholder="e.g. 12345-abc.apps.googleusercontent.com" />
+                  </div>
+                  <div>
+                    <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Client Secret</label>
+                    <input type="password" id="google-client-secret" class="input-text" placeholder="Client secret from Google Cloud Console" />
+                  </div>
+                </div>
+                <div>
+                  <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Authorized Redirect URI (configure in Google Cloud Console)</label>
+                  <input type="text" class="input-text" value="http://127.0.0.1:8000/api/integrations/google/callback" readonly style="background: var(--canvas-soft);" />
+                </div>
+                <div>
+                  <button type="submit" id="connect-google-btn" class="btn-pill-primary">Connect with Google</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Timezone & System Status -->
+            <div class="card">
+              <h3 class="card-title" style="margin-bottom: 14px;">Environment & Timezone</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                  <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Default Timezone</label>
+                  <input type="text" id="setting-tz" class="input-text" value="Asia/Kolkata" readonly style="background: var(--canvas-soft);" />
+                </div>
+                <div>
+                  <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Local AI Backend</label>
+                  <input type="text" id="setting-ai-backend" class="input-text" value="dev_mock (Rule-Based)" readonly style="background: var(--canvas-soft);" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Modals -->
+  <!-- Create Event Modal -->
+  <div id="create-event-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3>Create Calendar Event</h3>
+        <button class="modal-close-btn" style="background: none; border: none; font-size: 1.4rem; cursor: pointer;">&times;</button>
+      </div>
+      <form id="create-event-form">
+        <div class="modal-body">
+          <div>
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Event Title</label>
+            <input type="text" id="evt-title" class="input-text" required placeholder="e.g. Design review with team" />
+          </div>
+          <div>
+            <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Description</label>
+            <textarea id="evt-desc" class="input-text" rows="2" placeholder="Agenda or location notes"></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">Start Time (ISO)</label>
+              <input type="text" id="evt-start" class="input-text" required placeholder="2026-10-27T10:00:00+05:30" />
+            </div>
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 600; color: var(--ink-secondary); display: block; margin-bottom: 4px;">End Time (ISO)</label>
+              <input type="text" id="evt-end" class="input-text" required placeholder="2026-10-27T10:30:00+05:30" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-pill-secondary modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-pill-primary">Save Event</button>
+        </div>
       </form>
-    </section>
-
-    <!-- Daily Briefing Section -->
-    <section class="briefing-card" aria-labelledby="briefing-heading">
-      <div id="briefing-toggle" class="briefing-header" role="button" tabindex="0">
-        <div class="briefing-title">
-          <h3 id="briefing-heading">Daily Briefing</h3>
-          <span class="briefing-badge">Database Grounded</span>
-        </div>
-        <button type="button" id="refresh-briefing-btn" class="btn-icon" title="Refresh Briefing">↻ Refresh</button>
-      </div>
-      <div id="briefing-content" class="briefing-content">
-        <p id="briefing-summary" class="briefing-summary">Loading daily summary...</p>
-        <div id="briefing-stats" class="briefing-stats"></div>
-      </div>
-    </section>
-
-    <!-- Task Board Section -->
-    <section class="tasks-section" aria-labelledby="tasks-heading">
-      <div class="toolbar">
-        <nav class="nav-tabs" role="tablist">
-          <button class="tab-btn active" data-view="all" role="tab">All Tasks</button>
-          <button class="tab-btn" data-view="today" role="tab">Today</button>
-          <button class="tab-btn" data-view="upcoming" role="tab">Upcoming</button>
-          <button class="tab-btn" data-view="overdue" role="tab">Overdue</button>
-          <button class="tab-btn" data-view="inbox" role="tab">Inbox</button>
-        </nav>
-        <div class="filter-controls">
-          <select id="priority-filter" class="select-input" aria-label="Filter by priority">
-            <option value="">All Priorities</option>
-            <option value="high">High Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="low">Low Priority</option>
-          </select>
-          <input
-            type="search"
-            id="search-input"
-            class="search-input"
-            placeholder="Search tasks..."
-            aria-label="Search tasks"
-          />
-        </div>
-      </div>
-
-      <!-- Task Cards Container -->
-      <div id="task-list" class="task-list" role="region" aria-live="polite">
-        <!-- Rendered by app.js -->
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Review Extracted Tasks Modal -->
-  <div id="review-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
-    <div class="modal-container">
-      <div class="modal-header">
-        <div>
-          <h3 id="review-modal-title">Review Extracted Tasks</h3>
-          <p id="review-engine-info" style="font-size: 0.8rem; color: var(--text-secondary);"></p>
-        </div>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-      </div>
-      <div id="extracted-tasks-container" class="modal-body">
-        <!-- Rendered dynamically -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary modal-cancel">Cancel</button>
-        <button type="button" id="confirm-extracted-btn" class="btn-primary">Confirm & Save Tasks</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Task Modal -->
-  <div id="edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 id="edit-modal-title">Edit Task</h3>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="edit-title">Task Title</label>
-          <input type="text" id="edit-title" required />
-        </div>
-        <div class="form-group">
-          <label for="edit-description">Description / Notes</label>
-          <textarea id="edit-description" rows="2"></textarea>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="edit-priority">Priority</label>
-            <select id="edit-priority">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="edit-category">Category</label>
-            <input type="text" id="edit-category" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="edit-deadline">Deadline (ISO Format or empty)</label>
-          <input type="text" id="edit-deadline" placeholder="e.g. 2026-10-27T18:00:00+05:30" />
-        </div>
-        <div class="form-group">
-          <label for="edit-step">Suggested Next Step</label>
-          <input type="text" id="edit-step" />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary modal-cancel">Cancel</button>
-        <button type="button" id="save-edit-btn" class="btn-primary">Save Changes</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- System Status Modal -->
-  <div id="system-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="system-modal-title">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 id="system-modal-title">System & AI Engine Audit</h3>
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-      </div>
-      <div class="modal-body">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">Platform OS</td>
-            <td id="sys-os" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">Architecture</td>
-            <td id="sys-arch" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">Python Version</td>
-            <td id="sys-python" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">Active AI Backend</td>
-            <td id="sys-backend" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">Model Identifier</td>
-            <td id="sys-model" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">Real Inference Verified</td>
-            <td id="sys-verified" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">RAM Status</td>
-            <td id="sys-ram" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--surface-border);">
-            <td style="padding: 8px 0; color: var(--text-secondary);">Disk Available</td>
-            <td id="sys-disk" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; color: var(--text-secondary);">Configured Timezone</td>
-            <td id="sys-tz" style="padding: 8px 0; font-weight: 600;">-</td>
-          </tr>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary modal-cancel">Close</button>
-      </div>
     </div>
   </div>
 
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    <p>SlowSloth — Local-First Edge AI Assistant. Runs standalone on device with zero cloud telemetry.</p>
-  </footer>
 
   <script type="module" src="/static/js/app.js"></script>
 </body>

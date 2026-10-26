@@ -50,7 +50,7 @@ class IntentParser:
 
         # 1. Split compound thought into meaningful action clauses
         clauses = re.split(
-            r"(?<=[.!?])\s+|\s+(?:and\s+then|also|additionally)\s+|;\s*|,\s*(?:and\s+)?(?=(?:i\s+have|remind\s+me|prepare|finish|check|email|schedule|need\s+to|have\s+to)\b)",
+            r"(?<=[.!?])\s+|\s+(?:and\s+then|also|additionally)\s+|;\s*|,\s*(?:and\s+)?(?=(?:i\s+have|remind\s+me|prepare|finish|check|email|draft|write|review|schedule|buy|call|need\s+to|have\s+to)\b)|\s+and\s+(?=(?:i\s+have|remind\s+me|prepare|finish|check|email|draft|write|review|schedule|buy|call|need\s+to|have\s+to)\b)",
             text,
             flags=re.IGNORECASE,
         )
@@ -65,7 +65,15 @@ class IntentParser:
             if any(m in low_c for m in MEETING_TRIGGERS) and not low_c.startswith("prepare"):
                 meeting_clause = c
             elif "remind" in low_c:
-                reminder_clause = c
+                # Check if reminder clause has a conjoined task: e.g. "remind me 10 minutes before, and draft notes today"
+                if re.search(r",?\s+and\s+(?=(?:draft|write|prepare|finish|check|email|buy|call)\b)", c, re.IGNORECASE):
+                    sub_parts = re.split(r",?\s+and\s+(?=(?:draft|write|prepare|finish|check|email|buy|call)\b)", c, flags=re.IGNORECASE)
+                    reminder_clause = sub_parts[0]
+                    for sp in sub_parts[1:]:
+                        if sp.strip():
+                            task_clauses.append(sp.strip())
+                else:
+                    reminder_clause = c
             else:
                 task_clauses.append(c)
 

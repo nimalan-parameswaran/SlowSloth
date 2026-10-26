@@ -36,16 +36,26 @@ async def init_test_db():
 
     # Clear tables before each test
     async with db.get_connection() as conn:
+        await conn.execute("DELETE FROM reminders;")
+        await conn.execute("DELETE FROM calendar_sync_queue;")
+        await conn.execute("DELETE FROM calendar_events;")
         await conn.execute("DELETE FROM tasks;")
+        await conn.execute("DELETE FROM agent_activity;")
         await conn.execute("DELETE FROM thoughts;")
+        await conn.execute("DELETE FROM calendar_accounts;")
         await conn.commit()
 
     yield
 
     # Clean up after test
     async with db.get_connection() as conn:
+        await conn.execute("DELETE FROM reminders;")
+        await conn.execute("DELETE FROM calendar_sync_queue;")
+        await conn.execute("DELETE FROM calendar_events;")
         await conn.execute("DELETE FROM tasks;")
+        await conn.execute("DELETE FROM agent_activity;")
         await conn.execute("DELETE FROM thoughts;")
+        await conn.execute("DELETE FROM calendar_accounts;")
         await conn.commit()
 
 

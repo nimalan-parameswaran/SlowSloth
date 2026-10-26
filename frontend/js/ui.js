@@ -24,8 +24,8 @@ export function showToast(message, type = "info") {
   }, 3500);
 }
 
-export function formatDate(isoString) {
-  if (!isoString) return null;
+export function formatDateTime(isoString) {
+  if (!isoString) return "";
   try {
     const dt = new Date(isoString);
     if (isNaN(dt.getTime())) return isoString;
@@ -33,17 +33,15 @@ export function formatDate(isoString) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const taskDate = new Date(dt);
-    taskDate.setHours(0, 0, 0, 0);
+    const targetDate = new Date(dt);
+    targetDate.setHours(0, 0, 0, 0);
 
-    const diffDays = Math.round((taskDate - today) / (1000 * 60 * 60 * 24));
-
+    const diffDays = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
     const timeStr = dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
     if (diffDays === 0) return `Today at ${timeStr}`;
     if (diffDays === 1) return `Tomorrow at ${timeStr}`;
     if (diffDays === -1) return `Yesterday at ${timeStr}`;
-    if (diffDays < -1) return `${Math.abs(diffDays)} days overdue`;
     if (diffDays > 1 && diffDays <= 6) {
       const dayName = dt.toLocaleDateString([], { weekday: "short" });
       return `${dayName} at ${timeStr}`;
@@ -55,13 +53,15 @@ export function formatDate(isoString) {
   }
 }
 
-export function isOverdue(isoString) {
-  if (!isoString) return false;
+export function formatTimeRange(startIso, endIso) {
   try {
-    const dt = new Date(isoString);
-    return dt < new Date();
+    const s = new Date(startIso);
+    const e = new Date(endIso);
+    const sTime = s.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const eTime = e.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return `${sTime} – ${eTime}`;
   } catch (_) {
-    return false;
+    return `${startIso} – ${endIso}`;
   }
 }
 
@@ -77,4 +77,14 @@ export function closeModal(modalId) {
   if (modal) {
     modal.classList.remove("active");
   }
+}
+
+export function escapeHtml(str) {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }

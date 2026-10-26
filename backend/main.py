@@ -84,6 +84,10 @@ app.include_router(tasks_router)
 app.include_router(ai_router)
 app.include_router(briefing_router)
 app.include_router(system_router)
+app.include_router(agents_router)
+app.include_router(calendar_router)
+app.include_router(reminders_router)
+app.include_router(integrations_router)
 
 # Mount frontend static directory if exists
 frontend_dir = Path(__file__).resolve().parent.parent / "frontend"

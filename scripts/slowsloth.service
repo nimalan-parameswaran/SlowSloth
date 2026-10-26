@@ -1,0 +1,20 @@
+[Unit]
+Description=SlowSloth Edge AI Task Assistant
+After=network.target
+
+[Service]
+Type=simple
+# Dynamic user detected during setup: e.g. arduino or uno
+User=%I
+WorkingDirectory=/home/%I/SlowSloth
+ExecStart=/home/%I/SlowSloth/venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+Environment=SLOWSLOTH_HOST=127.0.0.1
+Environment=SLOWSLOTH_PORT=8000
+Environment=SLOWSLOTH_DB_PATH=data/slowsloth.db
+Environment=SLOWSLOTH_TIMEZONE=Asia/Kolkata
+
+[Install]
+WantedBy=multi-user.target

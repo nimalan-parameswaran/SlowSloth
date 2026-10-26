@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Sloth Mascot hanging peacefully on a branch -->
+  <defs>
+    <linearGradient id="branchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A5568" />
+      <stop offset="100%" stop-color="#2D3748" />
+    </linearGradient>
+    <linearGradient id="slothFur" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8D99AE" />
+      <stop offset="100%" stop-color="#5C677D" />
+    </linearGradient>
+    <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00B4D8" />
+      <stop offset="100%" stop-color="#0077B6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Branch -->
+  <path d="M 5 35 Q 50 42 95 32" stroke="url(#branchGrad)" stroke-width="7" stroke-linecap="round" fill="none" />
+  
+  <!-- Hanging Sloth Body -->
+  <ellipse cx="50" cy="56" rx="22" ry="18" fill="url(#slothFur)" />
+
+  <!-- Back Arm & Front Arm hanging from branch -->
+  <path d="M 36 50 Q 34 32 37 34" stroke="url(#slothFur)" stroke-width="7" stroke-linecap="round" fill="none" />
+  <path d="M 64 50 Q 66 32 63 34" stroke="url(#slothFur)" stroke-width="7" stroke-linecap="round" fill="none" />
+
+  <!-- Claws clutching branch -->
+  <path d="M 35 34 Q 37 30 39 34" stroke="#EDF2F7" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M 61 34 Q 63 30 65 34" stroke="#EDF2F7" stroke-width="2.5" fill="none" stroke-linecap="round" />
+
+  <!-- Head -->
+  <circle cx="50" cy="46" r="14" fill="url(#slothFur)" />
+
+  <!-- Face mask (lighter slate) -->
+  <ellipse cx="50" cy="47" rx="10" ry="8" fill="#DCE1E9" />
+
+  <!-- Eye markings (dark eye stripes) -->
+  <ellipse cx="45" cy="46" rx="3.5" ry="2" fill="#4B5563" transform="rotate(-15 45 46)" />
+  <ellipse cx="55" cy="46" rx="3.5" ry="2" fill="#4B5563" transform="rotate(15 55 46)" />
+
+  <!-- Peaceful sleeping eyes -->
+  <path d="M 43.5 46.5 Q 45 48 46.5 46.5" stroke="#111827" stroke-width="1.2" stroke-linecap="round" fill="none" />
+  <path d="M 53.5 46.5 Q 55 48 56.5 46.5" stroke="#111827" stroke-width="1.2" stroke-linecap="round" fill="none" />
+
+  <!-- Nose -->
+  <ellipse cx="50" cy="49" rx="2" ry="1.2" fill="#1F2937" />
+
+  <!-- Contented Smile -->
+  <path d="M 48 51 Q 50 52.5 52 51" stroke="#1F2937" stroke-width="1.2" stroke-linecap="round" fill="none" />
+
+  <!-- Little cyan badge accent (Edge AI pulse) -->
+  <circle cx="70" cy="62" r="4.5" fill="url(#cyanGlow)" />
+  <circle cx="70" cy="62" r="2" fill="#F5F7FA" />
+</svg>

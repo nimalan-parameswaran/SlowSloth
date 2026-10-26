@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SlowSloth — Edge AI Task Assistant</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="icon" type="image/svg+xml" href="/static/assets/sloth.svg">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <img src="/static/assets/sloth.svg" alt="SlowSloth mascot" class="brand-logo" />
+        <div class="brand-titles">
+          <h1>SlowSloth</h1>
+          <p class="tagline">Think Less About Tasks. Let Your Sloth Handle the Sorting.</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <div id="status-badge" class="status-badge mock" title="Click to view system & AI engine status">
+          <span class="status-indicator-dot"></span>
+          <span id="status-label">DEV MOCK ENGINE (Rule-Based)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="app-main">
+    
+    <!-- Quick Capture Section -->
+    <section class="capture-card" aria-labelledby="capture-heading">
+      <div class="capture-header">
+        <h2 id="capture-heading">Capture Raw Thought</h2>
+        <p>Type your unstructured thoughts, reminders, or notes. SlowSloth will extract separate tasks, suggested priorities, and deadlines.</p>
+      </div>
+      <form id="capture-form" class="capture-form">
+        <textarea
+          id="thought-input"
+          class="thought-textarea"
+          placeholder="e.g. Need to finish README for my AI project, check battery model results, and email my mentor tomorrow. I should probably do results first."
+          rows="3"
+          required
+        ></textarea>
+        <div class="capture-actions">
+          <span id="char-counter" class="char-counter">0 / 4000</span>
+          <button type="submit" id="organize-btn" class="btn-primary">
+            <span>Organize Thought</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Daily Briefing Section -->
+    <section class="briefing-card" aria-labelledby="briefing-heading">
+      <div id="briefing-toggle" class="briefing-header" role="button" tabindex="0">
+        <div class="briefing-title">
+          <h3 id="briefing-heading">Daily Briefing</h3>
+          <span class="briefing-badge">Database Grounded</span>
+        </div>
+        <button type="button" id="refresh-briefing-btn" class="btn-icon" title="Refresh Briefing">↻ Refresh</button>
+      </div>
+      <div id="briefing-content" class="briefing-content">
+        <p id="briefing-summary" class="briefing-summary">Loading daily summary...</p>
+        <div id="briefing-stats" class="briefing-stats"></div>
+      </div>
+    </section>
+
+    <!-- Task Board Section -->
+    <section class="tasks-section" aria-labelledby="tasks-heading">
+      <div class="toolbar">
+        <nav class="nav-tabs" role="tablist">
+          <button class="tab-btn active" data-view="all" role="tab">All Tasks</button>
+          <button class="tab-btn" data-view="today" role="tab">Today</button>
+          <button class="tab-btn" data-view="upcoming" role="tab">Upcoming</button>
+          <button class="tab-btn" data-view="overdue" role="tab">Overdue</button>
+          <button class="tab-btn" data-view="inbox" role="tab">Inbox</button>
+        </nav>
+        <div class="filter-controls">
+          <select id="priority-filter" class="select-input" aria-label="Filter by priority">
+            <option value="">All Priorities</option>
+            <option value="high">High Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="low">Low Priority</option>
+          </select>
+          <input
+            type="search"
+            id="search-input"
+            class="search-input"
+            placeholder="Search tasks..."
+            aria-label="Search tasks"
+          />
+        </div>
+      </div>
+
+      <!-- Task Cards Container -->
+      <div id="task-list" class="task-list" role="region" aria-live="polite">
+        <!-- Rendered by app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Review Extracted Tasks Modal -->
+  <div id="review-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <h3 id="review-modal-title">Review Extracted Tasks</h3>
+          <p id="review-engine-info" style="font-size: 0.8rem; color: var(--text-secondary);"></p>
+        </div>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <div id="extracted-tasks-container" class="modal-body">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+        <button type="button" id="confirm-extracted-btn" class="btn-primary">Confirm & Save Tasks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div id="edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="edit-modal-title">Edit Task</h3>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="edit-title">Task Title</label>
+          <input type="text" id="edit-title" required />
+        </div>
+        <div class="form-group">
+          <label for="edit-description">Description / Notes</label>
+          <textarea id="edit-description" rows="2"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-priority">Priority</label>
+            <select id="edit-priority">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-category">Category</label>
+            <input type="text" id="edit-category" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-deadline">Deadline (ISO Format or empty)</label>
+          <input type="text" id="edit-deadline" placeholder="e.g. 2026-10-27T18:00:00+05:30" />
+        </div>
+        <div class="form-group">
+          <label for="edit-step">Suggested Next Step</label>
+          <input type="text" id="edit-step" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel">Cancel</button>
+        <button type="button" id="save-edit-btn" class="btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Status Modal -->
+  <div id="system-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="system-modal-title">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="system-modal-title">System & AI Engine Audit</h3>
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Platform OS</td>
+            <td id="sys-os" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Architecture</td>
+            <td id="sys-arch" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Python Version</td>
+            <td id="sys-python" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Active AI Backend</td>
+            <td id="sys-backend" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Model Identifier</td>
+            <td id="sys-model" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Real Inference Verified</td>
+            <td id="sys-verified" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">RAM Status</td>
+            <td id="sys-ram" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--surface-border);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Disk Available</td>
+            <td id="sys-disk" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: var(--text-secondary);">Configured Timezone</td>
+            <td id="sys-tz" style="padding: 8px 0; font-weight: 600;">-</td>
+          </tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary modal-cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>SlowSloth — Local-First Edge AI Assistant. Runs standalone on device with zero cloud telemetry.</p>
+  </footer>
+
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,25 +1,205 @@
 # SlowSloth 🦥
-
 > **Think Less About Tasks. Let Your Sloth Handle the Sorting.**
 
-**SlowSloth** is a local-first personal productivity assistant designed to transform natural-language thoughts into structured, reviewable actions. It combines task management, multi-action planning, a local calendar, reminders, and daily briefings in a lightweight application targeting the **Arduino UNO Q** and local development workstations.
+SlowSloth is a local-first personal AI task-management butler designed for busy students and people juggling multiple commitments. It aims to turn natural-language thoughts into organised tasks, prioritise work, and help schedule it in **Google Calendar**.
 
-The target platform features the Qualcomm Dragonwing QRB2210, 4 GB RAM, 32 GB eMMC, and ARM64 Linux.
+Built for the **Arduino UNO Q**, SlowSloth is designed around local AI inference using Google's open-weight Gemma model family, with **Gemma 3 1B** as the selected model for local task interpretation.
 
-The central idea is simple: capture a thought, review the proposed actions, and let the application handle repetitive organisation while keeping the user in control.
+The motivation is personal. Between hackathons, research, courses, workshops, competitive exams, social volunteering, and time with family and friends, managing commitments can become a job of its own. SlowSloth aims to reduce that administrative effort so users can spend more time doing their work and less time organising it.
+
+The idea is simple:
+
+**Capture a thought. Let your assistant organise it. Review the plan. Get back to life.**
 
 ## At a glance
 
-- **Local-first architecture:** SQLite-backed task management and offline calendar functionality.
-- **Multi-action planning:** Interpret compound thoughts and prepare structured task, meeting, and reminder proposals.
+- **Local AI goal:** Run Gemma 3 1B on the Arduino UNO Q for natural-language task interpretation.
+- **AI task assistant:** Turn compound thoughts into structured task proposals.
+- **Priority-based planning:** Help decide which tasks deserve attention first.
+- **Google Calendar connection:** Designed to synchronise approved scheduling actions with a connected Google Calendar account.
 - **Human approval:** Review and edit proposed actions before execution.
-- **Reminder lifecycle:** Track reminder states and handle overdue reminders during recovery.
-- **Optional integration:** Google Calendar OAuth 2.0 and an outbox-based synchronisation design.
-- **Lightweight interface:** Responsive browser-based dashboard using HTML, CSS, and JavaScript.
+- **Local task storage:** SQLite-backed persistence for tasks, events, and reminders.
+- **Offline calendar:** Manage local calendar events without requiring Google Calendar connectivity.
+- **Reminder management:** Track reminder states and recover from application restarts.
+- **Daily briefing:** Summarise saved tasks and calendar information.
+- **Lightweight dashboard:** Responsive interface built with HTML, CSS, and JavaScript.
 - **Development fallback:** Deterministic rule-based processing when a local language model is unavailable.
-- **Edge-computing target:** Arduino UNO Q deployment, with hardware-specific compatibility and performance still requiring verification.
+
+**Current limitation:** Local Gemma 3 1B inference and physical deployment on the Arduino UNO Q must be verified on the actual hardware. The existing rule-based development engine is not a language model.
+
+---
+
+## Why SlowSloth?
+
+A busy student can have several competing priorities on the same day: finishing a research experiment, preparing a hackathon submission, attending a workshop, studying for an exam, and remembering a personal commitment.
+
+A conventional task manager still expects the user to enter the details, assign priorities, create calendar events, and maintain reminders.
+
+SlowSloth aims to reduce those manual steps.
+
+Instead of manually converting every thought into individual records, the user can enter a natural-language request such as:
+
+> I need to finish my research report, prepare for tomorrow's exam, and attend a project meeting at 10 AM. The exam preparation should come first. Remind me 15 minutes before the meeting.
+
+The intended workflow is to extract the separate actions, identify their priorities and deadlines, prepare a proposed schedule, and let the user review it before execution.
+
+With Google Calendar connected, approved meeting and scheduling actions can be sent to the user's calendar through the integration.
+
+The goal is not to let an AI make every decision independently. It is to reduce the repetitive work between having an intention and acting on it.
+
+## How it works
+
+**Capture → Interpret → Prioritise → Propose → Review → Confirm → Schedule → Track**
+
+1. **Capture:** Enter a thought containing one or more tasks.
+2. **Interpret:** Extract the requested actions and relevant dates or times.
+3. **Prioritise:** Determine the relative urgency of tasks using their deadlines, stated preferences, and other available information.
+4. **Propose:** Prepare structured task, meeting, and reminder proposals.
+5. **Review:** Edit, approve, or reject the proposed actions.
+6. **Confirm:** Validate the approved actions before execution.
+7. **Schedule:** Save local events and, when connected and authorised, synchronise eligible events with Google Calendar.
+8. **Track:** Follow task status, upcoming commitments, and reminders.
+
+Missing deadlines should remain unset unless the user supplies enough information to resolve them. Ambiguous dates should be flagged for review rather than guessed.
+
+Priority-based planning must also respect real calendar availability. A task marked urgent should not automatically displace an existing class, meeting, or personal commitment.
+
+---
+
+## Google Calendar integration
+
+Google Calendar connectivity is an important part of SlowSloth's intended workflow.
+
+A task manager can record what needs to be done, but a calendar helps answer a different question: **When can I actually do it?**
+
+SlowSloth is designed to connect task planning with the user's existing calendar, reducing the need to move information manually between a task list and a scheduling application.
+
+### Intended capabilities
+
+- Connect a Google account using OAuth 2.0.
+- Read relevant calendar information, subject to the granted permissions.
+- Create approved calendar events from scheduling proposals.
+- Associate meetings with reminders and related preparation tasks.
+- Use existing calendar commitments when considering available time.
+- Queue synchronisation work separately from local database transactions.
+- Track synchronisation status and handle eligible retries.
+- Continue using the local task manager and offline calendar when Google Calendar is unavailable.
+
+These capabilities describe the intended integration. Automated OAuth flow tests alone do not establish that live account authentication, event creation, synchronisation, and retries have all been verified.
+
+### How the connection is designed
+
+SlowSloth uses a local calendar service and a synchronisation outbox.
+
+The local application stores its own event records. Approved changes intended for Google Calendar can be placed in a synchronisation queue and processed separately by the integration service.
+
+This separation helps keep local task operations independent of temporary network failures. The queue still needs reliable processing, duplicate prevention, error handling, and live API testing before the complete synchronisation workflow can be considered verified.
+
+### Example
+
+Suppose the user enters:
+
+> I have a project meeting tomorrow at 10 AM for 30 minutes. Remind me 15 minutes before, and prepare the presentation today.
+
+SlowSloth is intended to prepare the following proposals:
+
+| Action | Proposed details |
+|---|---|
+| Meeting | Tomorrow, 10:00–10:30 AM |
+| Reminder | 9:45 AM, 15 minutes before the meeting |
+| Preparation task | Prepare the presentation, due today |
+| Priority | Determined using the user's stated urgency and available task information |
+
+The user reviews the proposals before confirming them. The meeting can then be added to the local calendar and synchronised with Google Calendar when the integration is connected and authorised.
+
+This example assumes the timezone is `Asia/Kolkata` and that the intended dates can be resolved unambiguously.
+
+---
+
+## AI architecture
+
+SlowSloth separates language interpretation, task planning, persistence, calendar operations, and reminder handling.
+
+### Main components
+
+- **Planner / Orchestrator:** Coordinates multi-action planning and the proposed workflow.
+- **Intent Parser:** Extracts candidate actions and detects ambiguities.
+- **Task Service:** Handles task creation, editing, completion, reopening, and search.
+- **Priority Planner:** Helps rank tasks and prepare scheduling proposals using the available task and calendar information.
+- **Calendar Service:** Manages local events and prepares eligible changes for external synchronisation.
+- **Google Calendar Integration:** Handles authorised communication with Google's Calendar API.
+- **Reminder Service:** Tracks reminder states and handles recovery after restarts.
+- **Daily Briefing Service:** Summarises information from saved application records.
+- **Activity Logger:** Records relevant planning and execution activity.
+
+The coordinator is designed to execute approved action bundles with transactional database operations and idempotency controls.
+
+The distinction between AI interpretation and application execution matters. A model can propose a task or suggest a priority, but application logic must validate the output before it becomes a saved record or an external calendar action.
+
+## Technology stack
+
+| Layer | Technology |
+|---|---|
+| Target hardware | Arduino UNO Q |
+| Target architecture | ARM64 Linux |
+| Preferred local model | Gemma 3 1B |
+| Potential inference runtime | `llama.cpp`, subject to compatibility testing |
+| Backend | FastAPI |
+| Data validation | Pydantic |
+| Database | SQLite |
+| Asynchronous database access | aiosqlite |
+| Frontend | HTML, CSS, JavaScript |
+| Testing | pytest |
+| Calendar integration | Google Calendar API, OAuth 2.0 |
+| Development fallback | Deterministic rule-based processing |
+
+The target hardware is reported to include a Qualcomm Dragonwing QRB2210 processor, 4 GB RAM, and 32 GB eMMC. Actual model compatibility, resource consumption, and inference latency need to be measured on the board.
+
+---
+
+## Task management and reminders
+
+### Task dashboard
+
+SlowSloth organises tasks into:
+
+- Today
+- Upcoming
+- Overdue
+- Inbox
+- All Tasks
+
+The dashboard also supports task search, filtering, editing, completion, and reopening.
+
+### Local calendar
+
+The offline calendar allows users to manage local events independently of Google Calendar connectivity.
+
+The `calendar_sync_queue` outbox separates local database changes from external synchronisation requests.
+
+### Reminder lifecycle
+
+The reminder service uses explicit states:
+
+`scheduled` → `due` → `delivered` → `acknowledged`
+
+Other states include `missed`, `failed`, and `cancelled`.
+
+Recovery logic handles reminders that become overdue while the application is stopped. The reported implementation marks reminders more than one hour overdue as missed and applies recovery handling to more recent overdue reminders.
+
+Actual notification delivery depends on the configured scheduler and notification mechanism.
+
+### Daily briefing
+
+The Daily Briefing view summarises saved tasks and calendar information, helping users see what needs attention without reviewing every entry individually.
+
+The service is designed to use actual application records instead of inventing tasks or deadlines.
+
+---
 
 ## Project status
+
+The following status reflects the reported development state. It should be updated whenever new tests or hardware verification are completed.
 
 | Component | Status |
 |---|---|
@@ -30,195 +210,13 @@ The central idea is simple: capture a thought, review the proposed actions, and 
 | Redesigned dashboard | Implemented; frontend serving tests reported passing |
 | Google OAuth flow | Automated flow tests reported passing; live account synchronisation not yet verified |
 | Rule-based processing | Available for development and testing |
-| Local Gemma inference | Planned; not yet verified |
+| Gemma 3 1B local inference | Planned; not yet verified |
+| Priority-based Google Calendar scheduling | Requires end-to-end verification |
 | Physical Arduino UNO Q deployment | Pending hardware verification |
 
-**Reported automated test result:** 40 passed on a Windows 11 development workstation using Python 3.13.7 and pytest 8.4.2. See [Automated Testing](#automated-testing).
+**Reported automated test result:** 40 passed on a Windows 11 development workstation using Python 3.13.7 and pytest 8.4.2.
 
-These results describe the reported workstation test run. They do not establish successful deployment on the Arduino UNO Q or successful live Google Calendar synchronisation.
-
----
-
-## How it works
-
-SlowSloth is designed around a review-first productivity workflow:
-
-**Capture → Understand → Propose → Review → Confirm → Execute → Track → Remind**
-
-For example, a user enters:
-
-> I have a project meeting tomorrow at 10 AM for 30 minutes. Remind me 15 minutes before, and prepare the presentation today.
-
-The intended workflow produces structured proposals for:
-
-1. **Meeting:** Tomorrow, 10:00–10:30 AM.
-2. **Reminder:** 15 minutes before the meeting, at 9:45 AM.
-3. **Preparation task:** Prepare the presentation, due today.
-4. **Review:** Edit, approve, or deselect proposed actions before confirming them.
-
-The example assumes the user's local timezone is `Asia/Kolkata` and that the date and time can be resolved unambiguously.
-
-SlowSloth is designed to avoid inventing missing deadlines or silently committing ambiguous actions. The user should remain able to review proposed details before execution.
-
-## Features
-
-### 1. Multi-agent productivity workflow
-
-The application separates planning, task management, calendar operations, reminders, and activity logging into specialised services.
-
-- **Planner / Orchestrator:** Coordinates compound thoughts and prepares structured action proposals.
-- **Intent Parser:** Splits multi-action input into candidate actions and identifies ambiguities.
-- **Task Service:** Manages task creation, updates, completion, reopening, and related task operations.
-- **Calendar Service:** Manages local events and prepares changes for optional external synchronisation.
-- **Reminder Service:** Tracks reminder states and handles recovery after application restarts.
-- **Daily Briefing Service:** Produces a briefing grounded in saved tasks and calendar information.
-- **Activity Logger:** Records relevant planning and execution activity for inspection.
-
-The coordinator is designed to execute approved action bundles using SQLite transactions and idempotency controls.
-
-### 2. Task management
-
-The dashboard organises work into views such as:
-
-- Today
-- Upcoming
-- Overdue
-- Inbox
-- All Tasks
-
-Additional task-management capabilities include search, filtering, editing, completion, and reopening.
-
-### 3. Local calendar
-
-SlowSloth includes an offline agenda service for creating and managing calendar events locally.
-
-The `calendar_sync_queue` outbox separates local database operations from external API synchronisation. This design helps prevent network latency or temporary connectivity loss from becoming part of the local transaction.
-
-The existence of an outbox does not, by itself, establish that live Google synchronisation has been completed.
-
-### 4. Reminder lifecycle and recovery
-
-The reminder service uses explicit lifecycle states:
-
-`scheduled` → `due` → `delivered` → `acknowledged`
-
-Additional states include:
-
-- `missed`
-- `failed`
-- `cancelled`
-
-Recovery logic handles reminders that become overdue while the application is stopped. The reported implementation marks reminders more than one hour overdue as missed and applies recovery handling to more recent overdue reminders.
-
-The application also provides an API route for processing due reminders. Actual notification delivery depends on the configured execution and notification mechanisms.
-
-### 5. Daily briefing
-
-The Daily Briefing view summarises saved tasks and calendar information.
-
-The briefing service is designed to use actual application records rather than inventing tasks or deadlines that do not exist in the database.
-
-### 6. Local-first processing
-
-SlowSloth supports a deterministic rule-based development engine. This provides a way to exercise and test task workflows without requiring a language model.
-
-The current reported development configuration uses:
-
-- **Engine:** `DEV MOCK ENGINE`
-- **Mode:** `is_mock=True`
-- **Cloud AI dependency:** Not required for the deterministic workflow
-
-This is not the same as local LLM inference. The rule-based engine should be identified accurately in the interface and logs.
-
-### 7. Dashboard redesign
-
-The interface uses a light design system inspired by Stripe's visual language.
-
-**Design tokens**
-
-| Element | Value |
-|---|---|
-| Primary indigo | `#533afd` |
-| Deep navy ink | `#0d253d` |
-| Secondary ink | `#273951` |
-| Muted text | `#64748d` |
-| White canvas | `#ffffff` |
-| Soft background | `#f6f9fc` |
-| Subtle borders | `#e3e8ee` |
-
-The design includes pill-shaped buttons, clean cards, restrained shadows, a subtle gradient-mesh banner, and tabular figures for dates and metrics.
-
-**Eight core views**
-
-1. **Overview** — Summary metrics, today's agenda, and priority tasks.
-2. **Capture / Inbox** — Thought intake and multi-action proposal review.
-3. **Tasks** — Search, filters, and task management.
-4. **Calendar** — Local agenda and event creation.
-5. **Reminders** — Reminder status and acknowledgement.
-6. **Daily Briefing** — Summary grounded in application records.
-7. **Agent Activity** — Inspectable activity log.
-8. **Settings** — Timezone, integration configuration, and engine status.
-
----
-
-## Architecture
-
-```text
-                    User Thought
-                         |
-                         v
-               Planner / Orchestrator
-                         |
-                         v
-                  Intent Parser
-                         |
-                         v
-              Structured Action Bundle
-                         |
-                         v
-                 User Review Screen
-                         |
-                   User Approval
-                         |
-                         v
-                Coordinator Service
-                         |
-                  SQLite Transaction
-                         |
-          +--------------+--------------+
-          |              |              |
-          v              v              v
-      Task Service  Calendar Service  Reminder Service
-          |              |              |
-          v              v              v
-        tasks      calendar_events    reminders
-                         |
-                         v
-                 calendar_sync_queue
-                         |
-                         v
-                Optional Google API
-
-             Activity Logger
-                    |
-                    v
-              agent_activity
-```
-
-### Technology stack
-
-| Layer | Technology |
-|---|---|
-| Backend API | FastAPI |
-| Data validation | Pydantic |
-| Database | SQLite |
-| Asynchronous database access | aiosqlite |
-| Frontend | HTML, CSS, JavaScript |
-| Testing | pytest |
-| Target platform | Arduino UNO Q / ARM64 Linux |
-| Current fallback engine | Deterministic rule-based processing |
-| Potential local inference runtime | `llama.cpp`, subject to compatibility testing |
-| Preferred model family | Gemma, subject to model and hardware verification |
+These workstation results do not establish successful deployment on the Arduino UNO Q or successful live Google Calendar synchronisation.
 
 ---
 
@@ -229,9 +227,8 @@ The design includes pill-shaped buttons, clean cards, restrained shadows, a subt
 - Python 3.10 or later
 - Git
 - SQLite support
-- A terminal on Windows, Linux, or macOS
 
-The commands below assume you are using Windows for local development.
+The commands below assume Windows development.
 
 ### 1. Clone the repository
 
@@ -252,211 +249,166 @@ Activate it in PowerShell:
 .\venv\Scripts\Activate.ps1
 ```
 
-If you use Git Bash:
-
-```bash
-source venv/Scripts/activate
-```
-
 ### 3. Install dependencies
 
-```bash
+```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Run the development server
-
-On Windows, use the repository's development launcher:
+### 4. Start the development server
 
 ```powershell
 .\scripts\run_dev.bat
 ```
 
-If you prefer to start the server manually, first check `scripts/run_dev.bat` for the configured application entry point and options.
+Check the launch script for the configured entry point and options if you need to start the server manually.
 
-Open the application at:
+Open the dashboard at:
 
-**http://127.0.0.1:8000**
+`http://127.0.0.1:8000`
 
-Keep the development server running while using the dashboard.
-
----
-
-## Automated testing
-
-Run the complete test suite from the repository root:
+### 5. Run automated tests
 
 ```bash
 python -m pytest tests/ -v
 ```
 
-### Reported test results
-
-The supplied Windows test run reports **40 passed in 5.53 seconds**.
-
-The tests cover:
-
-- Deterministic mock extraction and fallback behaviour
-- Daily briefing generation
-- Calendar CRUD and outbox operations
-- Database migrations and persistence
-- Date parsing
-- Frontend and static asset serving
-- Google integration status and OAuth state validation
-- Multi-action planning and ambiguity detection
-- Coordinator idempotency
-- Reminder lifecycle and restart recovery
-- SQL injection and XSS-related handling
-- LAN access guard
-- Task CRUD, filtering, and search
-- Thought review and confirmation
-
-These are the results reported for the Windows development environment. Re-run the test command against your current checkout to verify its present state.
+Run the tests against your current checkout before relying on the reported results.
 
 ---
 
-## Optional Google Calendar integration
+## Setting up Google Calendar
 
-SlowSloth is designed to support offline local calendar use without requiring a Google account. Google Calendar integration is optional.
-
-### Configure Google Cloud
+To connect Google Calendar, configure a Google Cloud project and OAuth credentials.
 
 1. Open the [Google Cloud Console](https://console.cloud.google.com/).
-2. Create or select a Google Cloud project.
+2. Create or select a project.
 3. Enable the Google Calendar API.
-4. Configure the OAuth consent screen for the intended account type.
-5. Configure the required Calendar events scope:
+4. Configure the OAuth consent screen.
+5. Create an OAuth 2.0 Client ID for the application.
+6. Configure the redirect URI expected by the application.
+7. Keep the client secret on the backend.
+8. Open SlowSloth's Settings page and follow the Google Calendar connection flow.
 
-   `https://www.googleapis.com/auth/calendar.events`
+The documented development callback is:
 
-6. Create an OAuth 2.0 Client ID for a web application.
-7. Configure the redirect URI expected by the application. The documented development URI is:
+`http://127.0.0.1:8000/api/integrations/google/callback`
 
-   `http://127.0.0.1:8000/api/integrations/google/callback`
+The integration uses the following Calendar events scope:
 
-8. Open SlowSloth and navigate to **Settings → Google Calendar Integration**.
-9. Enter the client credentials through the application's intended configuration flow and connect the Google account.
+`https://www.googleapis.com/auth/calendar.events`
+
+Verify the exact callback URL, scopes, and configuration fields against the current application code before setup.
 
 ### Security considerations
 
-- Keep the Google client secret and OAuth tokens on the backend.
-- Never expose credentials to browser JavaScript or commit secrets to Git.
-- Validate OAuth state to protect against cross-site request forgery.
-- Request only the scopes the application needs.
-- Verify the complete OAuth and synchronisation workflow with a test account before relying on it.
+- Never expose client secrets or OAuth tokens to browser JavaScript.
+- Do not commit credentials to Git.
+- Validate OAuth state.
+- Request only the required permissions.
+- Test authentication and event creation with a separate account before relying on synchronisation.
+- Verify duplicate prevention, retries, token handling, and event updates.
 
-**Live Google Calendar synchronisation has not been established by the reported automated tests alone.** The actual credential exchange, token handling, event creation, and retry behaviour must be verified separately.
+Google Calendar connectivity is optional. Local task management and the offline calendar are intended to remain useful without it.
 
 ---
 
 ## Arduino UNO Q deployment
 
-SlowSloth targets the Arduino UNO Q with the following reported hardware specifications:
+SlowSloth targets the Arduino UNO Q, with its reported 4 GB RAM and 32 GB eMMC.
 
-- **Processor:** Qualcomm Dragonwing QRB2210
-- **Memory:** 4 GB RAM
-- **Storage:** 32 GB eMMC
-- **Target architecture:** ARM64 Linux
-
-The repository includes a deployment setup script at:
+The repository includes a proposed deployment script:
 
 `scripts/setup_uno_q.sh`
 
-The script should be inspected before execution on the board. Confirm its installation steps, paths, permissions, and service configuration first.
+Inspect the script before running it on the board. Confirm the installation steps, paths, permissions, and service configuration.
 
-### Recommended deployment sequence
+The intended verification sequence is:
 
-1. Check free disk space and available RAM on the board.
-2. Confirm the operating system and architecture.
-3. Transfer or clone the verified project revision.
-4. Install the required Python dependencies.
-5. Run database initialisation and application checks.
-6. Start SlowSloth in deterministic rule-based mode.
-7. Verify dashboard access, task creation, review, persistence, calendar behaviour, and reminder recovery.
-8. Check service logs and restart behaviour.
-9. Measure idle and active resource consumption.
+1. Check available RAM and disk space.
+2. Confirm the OS and ARM64 architecture.
+3. Transfer the verified project revision.
+4. Install dependencies and initialise the database.
+5. Run the application using the rule-based engine.
+6. Test task creation, review, persistence, calendar operations, and reminder recovery.
+7. Test Google Calendar synchronisation with a controlled account.
+8. Evaluate Gemma 3 1B with a compatible runtime.
+9. Measure inference latency and memory consumption.
+10. Verify service startup and recovery after reboot.
 
-**Physical Arduino UNO Q deployment remains unverified until these steps are completed on the actual board.**
+**Physical deployment and local Gemma inference remain unverified until tested on the actual board.**
 
 ---
 
-## Local AI: Gemma and `llama.cpp`
+## Local AI and open innovation
 
-The longer-term goal is to run a suitable quantised Gemma model locally, enabling natural-language task interpretation without sending each thought to a hosted inference endpoint.
+The objective is to run Gemma 3 1B locally for task interpretation, keeping routine natural-language processing on hardware under the user's control.
 
-The candidate configuration is **Gemma 2 2B Instruct, Q4_K_M GGUF**, using a compatible `llama.cpp` runtime.
+A compatible inference runtime such as `llama.cpp` is a candidate, subject to model-format, architecture, and memory testing.
 
-This remains a planned integration rather than a verified hardware capability.
+Before deploying the model, verify:
 
-Before downloading or installing the model:
+- Model compatibility with the chosen runtime.
+- Available RAM and storage.
+- Context and inference-buffer requirements.
+- Model licensing and usage conditions.
+- Inference latency on the actual hardware.
+- Correct reporting of the active inference mode.
 
-1. Confirm available storage and memory on the target device.
-2. Verify ARM64 runtime compatibility.
-3. Confirm the model's terms and redistribution requirements.
-4. Evaluate model memory requirements, including context and inference buffers.
-5. Benchmark inference latency and memory usage on the actual board.
-6. Confirm that the application reports the active inference mode correctly.
+The current rule-based development engine does not constitute local LLM inference. SlowSloth should identify which engine is active rather than describing fallback results as model-generated output.
 
-A successful workstation test does not guarantee that the same model will run efficiently on the UNO Q.
+Open-weight AI matters here because it allows the model to be run and evaluated under local computing constraints instead of making a hosted inference API mandatory for every task.
 
-For model terms, consult the [Google Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+Google Calendar is a separate external service. Local model inference does not mean calendar synchronisation is offline: calendar events sent to Google are handled by Google's service under the account's permissions.
 
 ---
 
 ## Privacy and security
 
-SlowSloth is designed to make local task management possible without a hosted AI service.
+SlowSloth is designed around local task storage and review before action execution.
 
-Important considerations include:
+Its reported implementation includes SQLite persistence, structured data validation, transactional handling of coordinated actions, idempotency controls, OAuth state validation, and selected input-safety tests.
 
-- Local persistence using SQLite.
-- Review before executing proposed action bundles.
-- Structured data validation.
-- Transactional handling of coordinated actions.
-- Idempotency controls to reduce duplicate execution.
-- OAuth state validation for the Google integration.
-- Backend-only handling of sensitive integration credentials.
-- Tests covering selected input-safety and access-control behaviours.
+These measures do not guarantee that every deployment is secure by default. Review network binding, authentication, permissions, logs, backups, and secrets before exposing the application beyond local development.
 
-These measures are part of the implementation, not a guarantee that every deployment is secure by default. Review network binding, authentication, permissions, database access, logs, backups, and secrets before exposing the application beyond the local development environment.
-
-For source-code licensing, see [`LICENSE`](LICENSE).
-
-Model licences and terms are separate from the project's source-code licence. Review the applicable model terms before distributing or deploying model weights.
+The source code's licence is specified in the repository's `LICENSE` file. Model licences and third-party dependency terms must be reviewed separately.
 
 ---
 
 ## Contributing
 
-Contributions, bug reports, and practical feedback are welcome.
+Contributions and practical feedback are welcome.
 
-Useful areas to explore include:
+Useful areas include:
 
-- Improving natural-language task extraction.
-- Handling ambiguous dates and timezones safely.
-- Testing reminder recovery and duplicate prevention.
-- Optimising memory usage for ARM64 edge devices.
-- Improving accessibility and responsive dashboard behaviour.
-- Evaluating compatible local inference runtimes.
-- Expanding automated integration and hardware tests.
+- Natural-language task extraction.
+- Priority calculation and scheduling rules.
+- Ambiguous date and timezone handling.
+- Google Calendar synchronisation and duplicate prevention.
+- Reminder delivery and recovery.
+- ARM64 memory and inference performance.
+- Dashboard accessibility and usability.
+- Automated tests and hardware verification.
 
-When submitting changes, include reproducible steps, relevant test results, and a clear distinction between simulated behaviour and verified hardware functionality.
+Please include reproducible test steps and distinguish simulated behaviour from verified external integrations or hardware results.
 
 ## Licence
 
-SlowSloth's source code is distributed under the **MIT License**, subject to the terms in the repository's [`LICENSE`](LICENSE) file.
+SlowSloth is described as being distributed under the **MIT License**, subject to the terms in the repository's `LICENSE` file. Confirm that the file is present and matches this statement before redistributing the project.
 
-Third-party models, runtimes, and dependencies may have their own licences and usage conditions. These must be reviewed separately.
+Third-party models, runtimes, and dependencies may have separate licensing conditions.
 
 ---
 
 ## The idea behind SlowSloth 🦥
 
-> **One thought. Structured proposals. Quick review. Actionable tasks.**
+> **One thought. A clear plan. Less time managing work.**
 
-SlowSloth explores a practical approach to personal AI: reduce repetitive task administration while keeping the user in control of their data and decisions.
+SlowSloth is my attempt to reduce the mental overhead of balancing research, hackathons, courses, exams, volunteering, and personal commitments.
 
-The long-term goal is to make that experience useful on a compact edge device, with local processing, transparent system behaviour, and clear verification of what actually runs on the hardware.
+By combining local AI task interpretation with priority-based planning and a Google Calendar connection, the goal is to move from a collection of intentions to a schedule that can actually be followed.
 
-**Less time organising work. More time doing it.**
+The user remains in control of what gets saved and scheduled. The assistant handles the repetitive organisation.
+
+**Less time organising work. More time doing it.** 🦥

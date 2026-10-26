@@ -18,7 +18,7 @@ SlowSloth automatically extracts and coordinates:
 
 ---
 
-## Complete Stripe-Inspired Redesign (`DESIGN-stripe.md`)
+## Complete Design
 
 SlowSloth features a functional, editorial light design system inspired by Stripe:
 - **Palette**: Deep navy ink (`#0d253d`), secondary ink (`#273951`), electric indigo primary (`#533afd`), muted text (`#64748d`), white canvas (`#ffffff`), soft background (`#f6f9fc`), and subtle borders (`#e3e8ee`).

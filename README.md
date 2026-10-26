@@ -3,9 +3,11 @@
 
 SlowSloth is a local-first personal AI task-management butler designed for busy students and people juggling multiple commitments. It aims to turn natural-language thoughts into organised tasks, prioritise work, and help schedule it in **Google Calendar**.
 
-Built for the **Arduino UNO Q**, SlowSloth is designed around local AI inference using Google's open-weight Gemma model family, with **Gemma 3 1B** as the selected model for local task interpretation.
+Built for the **Arduino UNO Q**, SlowSloth is designed around local AI inference using Google's open-weight Gemma model family, with **Gemma 3 1B** selected for local task interpretation.
 
 The motivation is personal. Between hackathons, research, courses, workshops, competitive exams, social volunteering, and time with family and friends, managing commitments can become a job of its own. SlowSloth aims to reduce that administrative effort so users can spend more time doing their work and less time organising it.
+
+The project also brings reminders beyond the screen. Its LED matrix prototype displays a pixel-art sloth face and a pulsing heartbeat animation, forming the foundation for physical reminders before upcoming tasks and calendar events.
 
 The idea is simple:
 
@@ -15,17 +17,19 @@ The idea is simple:
 
 - **Local AI goal:** Run Gemma 3 1B on the Arduino UNO Q for natural-language task interpretation.
 - **AI task assistant:** Turn compound thoughts into structured task proposals.
-- **Priority-based planning:** Help decide which tasks deserve attention first.
+- **Priority-based planning:** Help determine which tasks deserve attention first.
 - **Google Calendar connection:** Designed to synchronise approved scheduling actions with a connected Google Calendar account.
 - **Human approval:** Review and edit proposed actions before execution.
 - **Local task storage:** SQLite-backed persistence for tasks, events, and reminders.
 - **Offline calendar:** Manage local calendar events without requiring Google Calendar connectivity.
+- **Physical LED reminders:** A sloth face and pulsing heartbeat animation on the UNO Q's built-in LED matrix.
+- **Scheduled reminder goal:** Trigger visual reminders 10 minutes and 1 minute before upcoming tasks or calendar events.
 - **Reminder management:** Track reminder states and recover from application restarts.
 - **Daily briefing:** Summarise saved tasks and calendar information.
 - **Lightweight dashboard:** Responsive interface built with HTML, CSS, and JavaScript.
 - **Development fallback:** Deterministic rule-based processing when a local language model is unavailable.
 
-**Current limitation:** Local Gemma 3 1B inference and physical deployment on the Arduino UNO Q must be verified on the actual hardware. The existing rule-based development engine is not a language model.
+**Current status:** The sloth-face and heartbeat animations have been displayed successfully on the Arduino UNO Q. Connecting those animations to scheduled reminders, live Google Calendar events, and the complete task-management workflow remains subject to end-to-end verification. Gemma 3 1B inference and full physical deployment also require testing on the actual hardware.
 
 ---
 
@@ -45,20 +49,23 @@ The intended workflow is to extract the separate actions, identify their priorit
 
 With Google Calendar connected, approved meeting and scheduling actions can be sent to the user's calendar through the integration.
 
+The physical LED matrix adds another layer. Rather than requiring the user to keep checking a dashboard, SlowSloth aims to provide a small visual signal on the device when a commitment is approaching.
+
 The goal is not to let an AI make every decision independently. It is to reduce the repetitive work between having an intention and acting on it.
 
 ## How it works
 
-**Capture → Interpret → Prioritise → Propose → Review → Confirm → Schedule → Track**
+**Capture → Interpret → Prioritise → Propose → Review → Confirm → Schedule → Remind → Track**
 
 1. **Capture:** Enter a thought containing one or more tasks.
 2. **Interpret:** Extract the requested actions and relevant dates or times.
-3. **Prioritise:** Determine the relative urgency of tasks using their deadlines, stated preferences, and other available information.
+3. **Prioritise:** Determine relative urgency using deadlines, stated preferences, and other available information.
 4. **Propose:** Prepare structured task, meeting, and reminder proposals.
 5. **Review:** Edit, approve, or reject the proposed actions.
-6. **Confirm:** Validate the approved actions before execution.
+6. **Confirm:** Validate approved actions before execution.
 7. **Schedule:** Save local events and, when connected and authorised, synchronise eligible events with Google Calendar.
-8. **Track:** Follow task status, upcoming commitments, and reminders.
+8. **Remind:** Use the reminder service to identify upcoming commitments and, once integrated, trigger visual feedback on the LED matrix.
+9. **Track:** Follow task status, upcoming commitments, and reminder states.
 
 Missing deadlines should remain unset unless the user supplies enough information to resolve them. Ambiguous dates should be flagged for review rather than guessed.
 
@@ -83,9 +90,10 @@ SlowSloth is designed to connect task planning with the user's existing calendar
 - Use existing calendar commitments when considering available time.
 - Queue synchronisation work separately from local database transactions.
 - Track synchronisation status and handle eligible retries.
+- Trigger reminders based on event start times.
 - Continue using the local task manager and offline calendar when Google Calendar is unavailable.
 
-These capabilities describe the intended integration. Automated OAuth flow tests alone do not establish that live account authentication, event creation, synchronisation, and retries have all been verified.
+These capabilities describe the intended integration. Automated OAuth flow tests alone do not establish that live account authentication, event creation, synchronisation, retries, or hardware reminders have all been verified.
 
 ### How the connection is designed
 
@@ -106,13 +114,46 @@ SlowSloth is intended to prepare the following proposals:
 | Action | Proposed details |
 |---|---|
 | Meeting | Tomorrow, 10:00–10:30 AM |
-| Reminder | 9:45 AM, 15 minutes before the meeting |
+| Digital reminder | 9:45 AM, 15 minutes before the meeting |
 | Preparation task | Prepare the presentation, due today |
 | Priority | Determined using the user's stated urgency and available task information |
+| Physical reminder | Sloth-face and heartbeat animation before the meeting, once scheduled LED reminders are integrated |
 
 The user reviews the proposals before confirming them. The meeting can then be added to the local calendar and synchronised with Google Calendar when the integration is connected and authorised.
 
+The physical reminder schedule is separate from the example's 15-minute digital reminder. The proposed default LED reminders are 10 minutes and 1 minute before an event, unless the user configures different timing.
+
 This example assumes the timezone is `Asia/Kolkata` and that the intended dates can be resolved unambiguously.
+
+---
+
+## Meet the SlowSloth LED matrix 🦥
+
+SlowSloth is designed to bring reminders beyond the dashboard and onto the Arduino UNO Q's built-in LED matrix.
+
+The prototype currently displays a pixel-art sloth face and a pulsing heart animation. The next stage is to connect these visual states to the task and calendar reminder service.
+
+### Proposed reminder behaviour
+
+| Timing or state | LED matrix behaviour |
+|---|---|
+| Idle | Display the pixel-art sloth face |
+| 10 minutes before a task or event | Display the sloth face followed by a gentle heartbeat animation |
+| 1 minute before a task or event | Trigger a second heartbeat reminder |
+| Event start time | Optionally display a distinct alert animation |
+| No upcoming commitment | Return to the idle sloth face |
+
+The aim is to make upcoming commitments noticeable without requiring users to keep checking their phones or reopening the dashboard.
+
+### How it is intended to work
+
+The Linux-side application manages tasks, event times, and reminder scheduling. The microcontroller controls the physical LED matrix animation.
+
+The reminder service identifies when a task or event is approaching and communicates the corresponding visual state to the microcontroller. The matrix then displays the sloth face, heartbeat, or other selected animation.
+
+The animation itself has already been tested on the device. Automated reminder triggering, communication between the application and microcontroller, and reliable operation after restarts still require end-to-end verification.
+
+The matrix is small and monochrome, so SlowSloth uses simple pixel patterns rather than detailed graphics. The objective is a clear visual signal, not a miniature screen containing text.
 
 ---
 
@@ -125,16 +166,19 @@ SlowSloth separates language interpretation, task planning, persistence, calenda
 - **Planner / Orchestrator:** Coordinates multi-action planning and the proposed workflow.
 - **Intent Parser:** Extracts candidate actions and detects ambiguities.
 - **Task Service:** Handles task creation, editing, completion, reopening, and search.
-- **Priority Planner:** Helps rank tasks and prepare scheduling proposals using the available task and calendar information.
+- **Priority Planner:** Helps rank tasks and prepare scheduling proposals using available task and calendar information.
 - **Calendar Service:** Manages local events and prepares eligible changes for external synchronisation.
 - **Google Calendar Integration:** Handles authorised communication with Google's Calendar API.
-- **Reminder Service:** Tracks reminder states and handles recovery after restarts.
+- **Reminder Service:** Tracks reminder states, identifies upcoming commitments, and handles recovery after restarts.
+- **LED Matrix Controller:** Intended to translate reminder states into sloth-face and heartbeat animations on the microcontroller.
 - **Daily Briefing Service:** Summarises information from saved application records.
 - **Activity Logger:** Records relevant planning and execution activity.
 
 The coordinator is designed to execute approved action bundles with transactional database operations and idempotency controls.
 
 The distinction between AI interpretation and application execution matters. A model can propose a task or suggest a priority, but application logic must validate the output before it becomes a saved record or an external calendar action.
+
+Similarly, the reminder service—not the language model—should determine when a reminder is due. This keeps reminder timing predictable and allows it to operate independently of AI inference.
 
 ## Technology stack
 
@@ -149,6 +193,7 @@ The distinction between AI interpretation and application execution matters. A m
 | Database | SQLite |
 | Asynchronous database access | aiosqlite |
 | Frontend | HTML, CSS, JavaScript |
+| Hardware programming | Arduino sketch and supported UNO Q communication mechanisms |
 | Testing | pytest |
 | Calendar integration | Google Calendar API, OAuth 2.0 |
 | Development fallback | Deterministic rule-based processing |
@@ -187,7 +232,7 @@ Other states include `missed`, `failed`, and `cancelled`.
 
 Recovery logic handles reminders that become overdue while the application is stopped. The reported implementation marks reminders more than one hour overdue as missed and applies recovery handling to more recent overdue reminders.
 
-Actual notification delivery depends on the configured scheduler and notification mechanism.
+Actual notification delivery depends on the configured scheduler and notification mechanism. LED reminders additionally require the reminder service to communicate with the matrix controller.
 
 ### Daily briefing
 
@@ -210,9 +255,13 @@ The following status reflects the reported development state. It should be updat
 | Redesigned dashboard | Implemented; frontend serving tests reported passing |
 | Google OAuth flow | Automated flow tests reported passing; live account synchronisation not yet verified |
 | Rule-based processing | Available for development and testing |
+| Sloth-face LED animation | Displayed successfully on the Arduino UNO Q |
+| Heartbeat LED animation | Displayed successfully on the Arduino UNO Q |
+| Automatic 10-minute and 1-minute LED reminders | Integration and timing verification pending |
+| Google Calendar event-to-LED reminder workflow | End-to-end verification pending |
 | Gemma 3 1B local inference | Planned; not yet verified |
 | Priority-based Google Calendar scheduling | Requires end-to-end verification |
-| Physical Arduino UNO Q deployment | Pending hardware verification |
+| Full application deployment on Arduino UNO Q | Pending hardware verification |
 
 **Reported automated test result:** 40 passed on a Windows 11 development workstation using Python 3.13.7 and pytest 8.4.2.
 
@@ -333,9 +382,13 @@ The intended verification sequence is:
 5. Run the application using the rule-based engine.
 6. Test task creation, review, persistence, calendar operations, and reminder recovery.
 7. Test Google Calendar synchronisation with a controlled account.
-8. Evaluate Gemma 3 1B with a compatible runtime.
-9. Measure inference latency and memory consumption.
-10. Verify service startup and recovery after reboot.
+8. Test the sloth-face and heartbeat animations.
+9. Connect reminder events to the LED matrix controller.
+10. Verify reminders trigger 10 minutes and 1 minute before the intended event.
+11. Check that browser closure does not stop the backend reminder service.
+12. Evaluate Gemma 3 1B with a compatible runtime.
+13. Measure inference latency and memory consumption.
+14. Verify service startup and recovery after reboot.
 
 **Physical deployment and local Gemma inference remain unverified until tested on the actual board.**
 
@@ -387,6 +440,7 @@ Useful areas include:
 - Ambiguous date and timezone handling.
 - Google Calendar synchronisation and duplicate prevention.
 - Reminder delivery and recovery.
+- LED matrix animations and reminder communication.
 - ARM64 memory and inference performance.
 - Dashboard accessibility and usability.
 - Automated tests and hardware verification.
@@ -407,8 +461,8 @@ Third-party models, runtimes, and dependencies may have separate licensing condi
 
 SlowSloth is my attempt to reduce the mental overhead of balancing research, hackathons, courses, exams, volunteering, and personal commitments.
 
-By combining local AI task interpretation with priority-based planning and a Google Calendar connection, the goal is to move from a collection of intentions to a schedule that can actually be followed.
+By combining local AI task interpretation with priority-based planning, a Google Calendar connection, and a physical LED reminder companion, the goal is to move from a collection of intentions to a schedule that can actually be followed.
 
-The user remains in control of what gets saved and scheduled. The assistant handles the repetitive organisation.
+The user remains in control of what gets saved and scheduled. The assistant handles the repetitive organisation, while the sloth on the LED matrix provides a gentle visual nudge when a commitment approaches.
 
 **Less time organising work. More time doing it.** 🦥

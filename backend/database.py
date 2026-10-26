@@ -55,6 +55,106 @@ MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
         CREATE INDEX IF NOT EXISTS idx_tasks_thought_id ON tasks(thought_id);
         """
+    ),
+    (
+        2,
+        "Multi-agent schema: calendar accounts, events, outbox sync queue, reminders, and agent activity log",
+        """
+        -- Calendar integration accounts (OAuth metadata)
+        CREATE TABLE IF NOT EXISTS calendar_accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            provider TEXT NOT NULL DEFAULT 'google',
+            email TEXT,
+            client_id TEXT,
+            client_secret TEXT,
+            access_token TEXT,
+            refresh_token TEXT,
+            token_expiry TIMESTAMP,
+            csrf_state TEXT,
+            is_connected INTEGER NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Calendar Events
+        CREATE TABLE IF NOT EXISTS calendar_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            thought_id INTEGER,
+            external_id TEXT,
+            title TEXT NOT NULL,
+            description TEXT,
+            start_time TIMESTAMP NOT NULL,
+            end_time TIMESTAMP NOT NULL,
+            timezone TEXT NOT NULL DEFAULT 'Asia/Kolkata',
+            status TEXT CHECK(status IN ('confirmed', 'cancelled')) NOT NULL DEFAULT 'confirmed',
+            is_synced INTEGER NOT NULL DEFAULT 0,
+            idempotency_key TEXT UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (thought_id) REFERENCES thoughts (id) ON DELETE SET NULL
+        );
+
+        -- Outbox Sync Queue for external Google Calendar calls
+        CREATE TABLE IF NOT EXISTS calendar_sync_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER,
+            action TEXT CHECK(action IN ('create', 'update', 'delete')) NOT NULL,
+            payload TEXT,
+            status TEXT CHECK(status IN ('pending', 'processing', 'completed', 'failed')) NOT NULL DEFAULT 'pending',
+            retry_count INTEGER NOT NULL DEFAULT 0,
+            error_message TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (event_id) REFERENCES calendar_events (id) ON DELETE CASCADE
+        );
+
+        -- Reminders with full lifecycle status
+        CREATE TABLE IF NOT EXISTS reminders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            thought_id INTEGER,
+            task_id INTEGER,
+            event_id INTEGER,
+            title TEXT NOT NULL,
+            scheduled_time TIMESTAMP NOT NULL,
+            offset_minutes INTEGER,
+            delivery_method TEXT CHECK(delivery_method IN ('dashboard', 'google_calendar')) NOT NULL DEFAULT 'dashboard',
+            status TEXT CHECK(status IN ('scheduled', 'due', 'delivered', 'acknowledged', 'missed', 'failed', 'cancelled')) NOT NULL DEFAULT 'scheduled',
+            idempotency_key TEXT UNIQUE,
+            delivered_at TIMESTAMP,
+            acknowledged_at TIMESTAMP,
+            retry_count INTEGER NOT NULL DEFAULT 0,
+            failure_reason TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (thought_id) REFERENCES thoughts (id) ON DELETE SET NULL,
+            FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE CASCADE,
+            FOREIGN KEY (event_id) REFERENCES calendar_events (id) ON DELETE CASCADE
+        );
+
+        -- Privacy-conscious Agent Activity Log
+        CREATE TABLE IF NOT EXISTS agent_activity (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            thought_id INTEGER,
+            agent_name TEXT NOT NULL,
+            action_type TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            status TEXT CHECK(status IN ('success', 'error', 'skipped')) NOT NULL DEFAULT 'success',
+            error_message TEXT,
+            latency_ms REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (thought_id) REFERENCES thoughts (id) ON DELETE SET NULL
+        );
+
+        -- Add idempotency_key to tasks safely if missing
+        ALTER TABLE tasks ADD COLUMN idempotency_key TEXT;
+
+        -- Indexes for high-performance edge queries
+        CREATE INDEX IF NOT EXISTS idx_calendar_events_start ON calendar_events(start_time);
+        CREATE INDEX IF NOT EXISTS idx_calendar_events_status ON calendar_events(status);
+        CREATE INDEX IF NOT EXISTS idx_sync_queue_status ON calendar_sync_queue(status);
+        CREATE INDEX IF NOT EXISTS idx_reminders_status_time ON reminders(status, scheduled_time);
+        CREATE INDEX IF NOT EXISTS idx_agent_activity_created ON agent_activity(created_at);
+        """
     )
 ]
 
@@ -100,7 +200,13 @@ class Database:
 
             for version, description, sql in MIGRATIONS:
                 if version not in applied_versions:
-                    await conn.executescript(sql)
+                    try:
+                        await conn.executescript(sql)
+                    except aiosqlite.OperationalError as e:
+                        if "duplicate column name" in str(e).lower():
+                            pass
+                        else:
+                            raise
                     await conn.execute(
                         "INSERT INTO schema_migrations (version, description) VALUES (?, ?);",
                         (version, description),

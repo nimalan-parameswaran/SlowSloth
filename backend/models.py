@@ -176,3 +176,161 @@ class SystemStatusResponse(BaseModel):
     database_path: str
     timezone: str
     lan_enabled: bool
+
+
+class ReminderStatus(str, Enum):
+    SCHEDULED = "scheduled"
+    DUE = "due"
+    DELIVERED = "delivered"
+    ACKNOWLEDGED = "acknowledged"
+    MISSED = "missed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class DeliveryMethod(str, Enum):
+    DASHBOARD = "dashboard"
+    GOOGLE_CALENDAR = "google_calendar"
+
+
+class EventStatus(str, Enum):
+    CONFIRMED = "confirmed"
+    CANCELLED = "cancelled"
+
+
+class ProposedEvent(BaseModel):
+    idempotency_key: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = Field(default=None, max_length=1000)
+    start_time: str
+    end_time: str
+    duration_minutes: int = 30
+    timezone: str = "Asia/Kolkata"
+    is_ambiguous: bool = False
+    ambiguity_reason: Optional[str] = None
+
+
+class ProposedReminder(BaseModel):
+    idempotency_key: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=200)
+    scheduled_time: str
+    offset_minutes: Optional[int] = None
+    delivery_method: DeliveryMethod = DeliveryMethod.DASHBOARD
+    target_type: str = "event"
+    target_title: Optional[str] = None
+
+
+class MultiActionBundle(BaseModel):
+    thought_id: int
+    raw_thought: str
+    tasks: List[ExtractedTask] = []
+    events: List[ProposedEvent] = []
+    reminders: List[ProposedReminder] = []
+    ambiguities: List[str] = []
+    planner_notes: str = ""
+    processing_time_ms: float = 0.0
+    created_at: str
+
+
+class ExecuteBundleRequest(BaseModel):
+    thought_id: int
+    tasks: List[ExtractedTask] = []
+    events: List[ProposedEvent] = []
+    reminders: List[ProposedReminder] = []
+
+
+class CalendarEventCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    start_time: str
+    end_time: str
+    timezone: str = "Asia/Kolkata"
+
+
+class CalendarEventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    timezone: Optional[str] = None
+    status: Optional[EventStatus] = None
+
+
+class CalendarEventResponse(BaseModel):
+    id: int
+    thought_id: Optional[int] = None
+    external_id: Optional[str] = None
+    title: str
+    description: Optional[str] = None
+    start_time: str
+    end_time: str
+    timezone: str
+    status: EventStatus
+    is_synced: bool
+    created_at: str
+    updated_at: str
+
+
+class ReminderCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    scheduled_time: str
+    offset_minutes: Optional[int] = None
+    delivery_method: DeliveryMethod = DeliveryMethod.DASHBOARD
+    task_id: Optional[int] = None
+    event_id: Optional[int] = None
+
+
+class ReminderUpdate(BaseModel):
+    title: Optional[str] = None
+    scheduled_time: Optional[str] = None
+    status: Optional[ReminderStatus] = None
+
+
+class ReminderResponse(BaseModel):
+    id: int
+    thought_id: Optional[int] = None
+    task_id: Optional[int] = None
+    event_id: Optional[int] = None
+    title: str
+    scheduled_time: str
+    offset_minutes: Optional[int] = None
+    delivery_method: DeliveryMethod
+    status: ReminderStatus
+    delivered_at: Optional[str] = None
+    acknowledged_at: Optional[str] = None
+    failure_reason: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+
+class AgentActivityResponse(BaseModel):
+    id: int
+    thought_id: Optional[int] = None
+    agent_name: str
+    action_type: str
+    summary: str
+    status: str
+    error_message: Optional[str] = None
+    latency_ms: Optional[float] = None
+    created_at: str
+
+
+class ExecutionResult(BaseModel):
+    thought_id: int
+    created_tasks: List[TaskResponse]
+    created_events: List[CalendarEventResponse]
+    created_reminders: List[ReminderResponse]
+    activity_count: int
+
+
+class GoogleIntegrationStatus(BaseModel):
+    is_connected: bool
+    email: Optional[str] = None
+    client_id_configured: bool = False
+    last_sync: Optional[str] = None
+    pending_sync_count: int = 0
+
+
+class GoogleAuthUrlResponse(BaseModel):
+    auth_url: str
+    csrf_state: str

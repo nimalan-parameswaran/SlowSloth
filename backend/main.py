@@ -13,20 +13,27 @@ from backend.routes.tasks import router as tasks_router
 from backend.routes.ai import router as ai_router
 from backend.routes.briefing import router as briefing_router
 from backend.routes.system import router as system_router
+from backend.routes.agents import router as agents_router
+from backend.routes.calendar import router as calendar_router
+from backend.routes.reminders import router as reminders_router
+from backend.routes.integrations import router as integrations_router
+from backend.services.reminder_service import reminder_service
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan event handler: run migrations and verify environment on startup."""
+    """Lifespan event handler: run migrations and recover reminders on startup."""
     # Ensure database tables exist and migrations are applied
     await db.run_migrations()
+    # Recover and process any reminders that came due while the server was offline
+    await reminder_service.recover_and_process_pending()
     yield
 
 
 app = FastAPI(
-    title="SlowSloth Edge Task Assistant",
-    description="Local-first AI task assistant for Arduino UNO Q and local edge computing.",
-    version="0.1.0",
+    title="SlowSloth Multi-Agent Personal Assistant",
+    description="Local-first AI personal assistant for tasks, calendars, and reminders.",
+    version="0.2.0",
     lifespan=lifespan,
 )
 

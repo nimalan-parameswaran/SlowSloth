@@ -170,9 +170,11 @@ The LED matrix can display a simple pixel-art sloth face. When a task or calenda
 
 The intended behaviour is:
 
-|10 minutes before a task or event: The sloth face appears, followed by a heartbeat animation.
-|One-time alert: The sloth-and-heartbeat sequence runs once for that upcoming task or event. It does not repeatedly blink throughout the remaining ten minutes.
-|At the scheduled time: The event follows its scheduled timing; the earlier sloth-and-heartbeat sequence is not repeated.
+> 10 minutes before a task or event: The sloth face appears, followed by a heartbeat animation.
+
+> One-time alert: The sloth-and-heartbeat sequence runs once for that upcoming task or event. It does not repeatedly blink throughout the remaining ten minutes.
+
+> At the scheduled time: The event follows its scheduled timing; the earlier sloth-and-heartbeat sequence is not repeated.
 
 The goal is to make upcoming commitments noticeable without requiring the user to keep checking a phone or reopening the dashboard.
 
